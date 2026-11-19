@@ -1,0 +1,747 @@
+<title>Cuentas compartidas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: libro de cuentas de dos personas. Rosa = Persona A, azul = Persona B; el neutro es lavanda, la mezcla de ambos. Móvil: una columna; PC: panel de saldo a la izquierda, gastos del mes a la derecha. */
+:root {
+  --bg: #f6f4f9;
+  --surface: #ffffff;
+  --surface-2: #efecf4;
+  --ink: #1f1b27;
+  --muted: #6d6779;
+  --line: #e3dfea;
+  --personaa: #d63c74;
+  --personaa-soft: #fce6ee;
+  --personaa-ink: #a3214f;
+  --personab: #2a66d4;
+  --personab-soft: #e2ebfb;
+  --personab-ink: #1a4aa3;
+  --good: #1f8a5b;
+  --danger: #c2372f;
+  --c-comida: #e07b2e;
+  --c-cine: #7a52c7;
+  --c-salidas: #12938a;
+  --c-suscripciones: #55657d;
+  --c-viajes: #3f9a3a;
+  --c-mercado: #c99a12;
+  --c-transporte: #8a5a3c;
+  --c-regalos: #c8463c;
+  --c-otros: #9a94a6;
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Figtree", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --radius: 18px;
+  --shadow: 0 1px 2px rgba(40, 20, 60, .06), 0 8px 24px rgba(40, 20, 60, .06);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141219; --surface: #1d1a24; --surface-2: #26222f; --ink: #ede9f3; --muted: #a49db0; --line: #2f2a38;
+    --personaa: #ff6f9f; --personaa-soft: #3a1d2a; --personaa-ink: #ff9cbd;
+    --personab: #6aa0ff; --personab-soft: #1a2640; --personab-ink: #9fc0ff;
+    --good: #4cc48e; --danger: #ff7a70;
+    --c-comida: #f29a55; --c-cine: #a483ea; --c-salidas: #3cc2b7; --c-suscripciones: #8b9bb4; --c-viajes: #6cc466;
+    --c-mercado: #e8bf3e; --c-transporte: #c08a66; --c-regalos: #f0756a; --c-otros: #8a8496;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141219; --surface: #1d1a24; --surface-2: #26222f; --ink: #ede9f3; --muted: #a49db0; --line: #2f2a38;
+  --personaa: #ff6f9f; --personaa-soft: #3a1d2a; --personaa-ink: #ff9cbd;
+  --personab: #6aa0ff; --personab-soft: #1a2640; --personab-ink: #9fc0ff;
+  --good: #4cc48e; --danger: #ff7a70;
+  --c-comida: #f29a55; --c-cine: #a483ea; --c-salidas: #3cc2b7; --c-suscripciones: #8b9bb4; --c-viajes: #6cc466;
+  --c-mercado: #e8bf3e; --c-transporte: #c08a66; --c-regalos: #f0756a; --c-otros: #8a8496;
+  --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px rgba(0,0,0,.25);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--f-body); font-size: 15px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 110px;
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--personab); outline-offset: 2px; }
+.num { font-variant-numeric: tabular-nums; }
+.wrap { max-width: 1120px; margin: 0 auto; }
+
+/* Header */
+header.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px)));
+  padding: 12px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px));
+  border-bottom: 1px solid var(--line);
+}
+.top-inner { max-width: 1120px; margin: 0 auto; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; flex: 1 1 auto; min-width: 0; }
+.duo { display: flex; }
+.duo span { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 13px; border: 2px solid var(--bg); }
+.duo span:last-child { margin-left: -9px; }
+.av-s { background: var(--personaa); }
+.av-o { background: var(--personab); }
+.brand h1 { font-family: var(--f-display); font-size: 19px; font-weight: 800; letter-spacing: -.01em; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.yo-btn { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 5px 12px 5px 5px; font-weight: 600; font-size: 14px; }
+.yo-btn .dot { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-size: 12px; font-weight: 700; }
+
+/* Month bar */
+.monthbar { display: flex; align-items: center; gap: 8px; margin: 22px 0 6px; flex-wrap: wrap; }
+.monthbar h2 { font-family: var(--f-display); font-size: clamp(26px, 6vw, 38px); font-weight: 800; letter-spacing: -.02em; margin: 0; flex: 1 1 auto; text-wrap: balance; line-height: 1.05; }
+.monthbar h2 small { display: block; font-family: var(--f-body); font-size: 13px; font-weight: 600; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 4px; }
+.mnav { display: flex; align-items: center; gap: 6px; }
+.icon-btn { width: 38px; height: 38px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; }
+.icon-btn svg { width: 18px; height: 18px; }
+select#mesSel { height: 38px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); padding: 0 10px; font-weight: 600; text-transform: capitalize; max-width: 170px; }
+
+.status { font-size: 13px; color: var(--muted); margin: 0 0 14px; }
+.status.warn { color: var(--danger); }
+
+/* Grid */
+.layout { display: grid; grid-template-columns: 1fr; gap: 16px; align-items: start; }
+@media (min-width: 900px) { .layout { grid-template-columns: 390px minmax(0, 1fr); gap: 22px; } .side { position: sticky; top: 84px; } }
+.side { display: grid; gap: 16px; min-width: 0; }
+.main { min-width: 0; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); }
+.label { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
+
+/* Debt card */
+.debt { cursor: pointer; text-align: left; width: 100%; display: block; position: relative; overflow: hidden; border: 1px solid var(--line); }
+.debt.owes-o { background: linear-gradient(135deg, var(--personaa-soft), var(--surface) 70%); }
+.debt.owes-s { background: linear-gradient(135deg, var(--personab-soft), var(--surface) 70%); }
+.debt-line { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; }
+.debt-line .arrow { color: var(--muted); }
+.debt-amt { font-family: var(--f-display); font-size: clamp(36px, 9vw, 46px); font-weight: 800; letter-spacing: -.03em; margin: 8px 0 2px; line-height: 1; }
+.debt-sub { color: var(--muted); font-size: 13px; display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.debt-sub b { color: var(--ink); font-weight: 600; }
+.chip-av { width: 28px; height: 28px; border-radius: 50%; display: inline-grid; place-items: center; color: #fff; font-size: 12px; font-weight: 700; flex: none; }
+.btn { border: none; border-radius: 12px; padding: 11px 16px; font-weight: 700; font-size: 14px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.btn-ink { background: var(--ink); color: var(--bg); }
+.btn-ghost { background: var(--surface-2); color: var(--ink); }
+.btn-danger { background: transparent; color: var(--danger); border: 1px solid color-mix(in srgb, var(--danger) 40%, transparent); }
+.btn-row { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+.btn-row .btn { flex: 1 1 auto; }
+
+/* Who spent */
+.split-bar { display: flex; height: 12px; border-radius: 999px; overflow: hidden; background: var(--surface-2); margin: 4px 0 14px; }
+.split-bar i { display: block; height: 100%; transition: width .4s ease; }
+.who { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.who > div { border-radius: 14px; padding: 12px; }
+.who .s { background: var(--personaa-soft); }
+.who .o { background: var(--personab-soft); }
+.who .n { font-size: 13px; font-weight: 700; }
+.who .s .n { color: var(--personaa-ink); }
+.who .o .n { color: var(--personab-ink); }
+.who .v { font-family: var(--f-display); font-size: 22px; font-weight: 700; letter-spacing: -.02em; margin: 2px 0; }
+.who .h { font-size: 12px; color: var(--muted); }
+.total-mes { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+.total-mes b { font-family: var(--f-display); font-size: 22px; }
+
+/* Donut */
+.donut-wrap { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; }
+.donut { width: 150px; height: 150px; flex: none; position: relative; }
+.donut svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.donut circle.seg { cursor: pointer; transition: opacity .2s, stroke-width .2s; }
+.donut .center { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; pointer-events: none; }
+.donut .center b { font-family: var(--f-display); font-size: 17px; display: block; }
+.donut .center span { font-size: 11px; color: var(--muted); }
+.legend { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; flex: 1 1 160px; min-width: 0; }
+.legend button { width: 100%; display: grid; grid-template-columns: 10px 1fr auto auto; gap: 8px; align-items: center; background: none; border: none; padding: 5px 6px; border-radius: 8px; text-align: left; font-size: 13px; }
+.legend button:hover, .legend button.on { background: var(--surface-2); }
+.legend i { width: 10px; height: 10px; border-radius: 3px; }
+.legend .pct { color: var(--muted); font-size: 12px; min-width: 34px; text-align: right; }
+.legend .amt { font-weight: 600; }
+.dim { opacity: .3; }
+
+/* List */
+.list-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.filter-pill { display: inline-flex; align-items: center; gap: 6px; background: var(--surface-2); border: none; border-radius: 999px; padding: 5px 10px; font-size: 13px; font-weight: 600; }
+.day { margin: 18px 0 6px; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.day:first-child { margin-top: 0; }
+.rows { display: grid; gap: 8px; }
+.row { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 14px; border-radius: 16px; border: 1px solid transparent; background: var(--surface); text-align: left; width: 100%; }
+.row.s { background: var(--personaa-soft); border-color: color-mix(in srgb, var(--personaa) 18%, transparent); }
+.row.o { background: var(--personab-soft); border-color: color-mix(in srgb, var(--personab) 18%, transparent); }
+.row.pay { background: var(--surface); border: 1px dashed var(--line); }
+.row .t { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.row .m { font-size: 12.5px; color: var(--muted); display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.cat-tag { display: inline-flex; align-items: center; gap: 4px; }
+.cat-tag i { width: 8px; height: 8px; border-radius: 2px; }
+.row .a { text-align: right; }
+.row .a b { font-family: var(--f-display); font-size: 17px; font-weight: 700; display: block; }
+.row.s .a b { color: var(--personaa-ink); }
+.row.o .a b { color: var(--personab-ink); }
+.row .a small { font-size: 11.5px; color: var(--muted); white-space: nowrap; }
+.pay-ic { width: 36px; height: 36px; border-radius: 50%; background: var(--surface-2); display: grid; place-items: center; color: var(--good); }
+.pay-ic svg { width: 18px; height: 18px; }
+
+.empty { text-align: center; padding: 34px 18px; border: 1.5px dashed var(--line); border-radius: var(--radius); color: var(--muted); }
+.empty h3 { font-family: var(--f-display); color: var(--ink); font-size: 20px; margin: 0 0 6px; }
+.empty p { margin: 0 auto 14px; max-width: 38ch; }
+
+/* FAB */
+.fab {
+  position: fixed; z-index: 6;
+  right: calc(16px + env(safe-area-inset-right, 0px)); bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  border: none; border-radius: 999px; padding: 15px 22px 15px 18px; font-weight: 700; font-size: 15px;
+  display: inline-flex; align-items: center; gap: 8px; color: #fff;
+  background: linear-gradient(120deg, var(--personaa), var(--personab));
+  box-shadow: 0 10px 28px rgba(60, 40, 120, .32);
+}
+.fab svg { width: 20px; height: 20px; }
+
+/* Dialogs */
+dialog { border: none; padding: 0; border-radius: 22px; width: min(540px, calc(100% - 24px)); max-height: 92dvh; background: var(--surface); color: var(--ink); box-shadow: 0 30px 80px rgba(0,0,0,.35); }
+dialog::backdrop { background: rgba(20, 12, 30, .45); }
+.sheet { display: flex; flex-direction: column; max-height: 92dvh; }
+.sheet-h { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px 10px; gap: 10px; }
+.sheet-h h3 { font-family: var(--f-display); font-size: 22px; margin: 0; letter-spacing: -.01em; }
+.sheet-b { padding: 4px 20px 20px; overflow: auto; }
+.sheet-f { padding: 12px 20px calc(16px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line); display: flex; gap: 8px; flex-wrap: wrap; }
+.sheet-f .btn { flex: 1 1 auto; }
+@media (max-width: 600px) {
+  dialog { width: 100%; max-width: 100%; margin: auto 0 0; border-radius: 22px 22px 0 0; }
+}
+.field { display: grid; gap: 6px; margin-bottom: 14px; }
+.field > span { font-size: 13px; font-weight: 700; color: var(--muted); }
+.input { width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: 12px; padding: 11px 12px; font-size: 16px; }
+.input.big { font-family: var(--f-display); font-size: 30px; font-weight: 700; padding: 8px 12px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.seg button { border: 2px solid var(--line); background: var(--bg); border-radius: 14px; padding: 10px; font-weight: 700; display: flex; align-items: center; gap: 8px; justify-content: center; }
+.seg button.on.s { border-color: var(--personaa); background: var(--personaa-soft); color: var(--personaa-ink); }
+.seg button.on.o { border-color: var(--personab); background: var(--personab-soft); color: var(--personab-ink); }
+.cats { display: flex; flex-wrap: wrap; gap: 6px; }
+.cats button { border: 1.5px solid var(--line); background: var(--bg); border-radius: 999px; padding: 6px 12px; font-size: 13.5px; font-weight: 600; display: inline-flex; gap: 6px; align-items: center; }
+.cats button i { width: 9px; height: 9px; border-radius: 3px; }
+.cats button.on { border-color: var(--ink); background: var(--surface-2); }
+.opts { display: grid; gap: 8px; }
+.opts button { text-align: left; border: 2px solid var(--line); background: var(--bg); border-radius: 14px; padding: 10px 12px; display: grid; gap: 2px; }
+.opts button b { font-size: 14.5px; }
+.opts button span { font-size: 12.5px; color: var(--muted); }
+.opts button.on { border-color: var(--ink); background: var(--surface-2); }
+.confirm-del { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: 14px; }
+
+/* Breakdown */
+.tabs { display: inline-flex; background: var(--surface-2); border-radius: 12px; padding: 3px; margin-bottom: 14px; }
+.tabs button { border: none; background: none; padding: 7px 14px; border-radius: 9px; font-weight: 600; font-size: 13.5px; }
+.tabs button.on { background: var(--surface); box-shadow: var(--shadow); }
+.sum-box { background: var(--surface-2); border-radius: 14px; padding: 12px 14px; display: grid; gap: 6px; margin-bottom: 16px; font-size: 14px; }
+.sum-box div { display: flex; justify-content: space-between; gap: 10px; }
+.sum-box .tot { border-top: 1px solid var(--line); padding-top: 8px; font-weight: 700; }
+.bd-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.bd-row:last-child { border-bottom: none; }
+.bd-row .t { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bd-row .m { font-size: 12px; color: var(--muted); }
+.bd-row .e { text-align: right; font-weight: 700; white-space: nowrap; }
+.e.to-o { color: var(--personab-ink); }
+.e.to-s { color: var(--personaa-ink); }
+.e.zero { color: var(--muted); font-weight: 500; }
+
+[hidden] { display: none !important; }
+/* Identity overlay */
+.who-pick { position: fixed; inset: 0; z-index: 20; background: var(--bg); display: grid; place-items: center; padding: 24px max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px)); }
+.who-pick .in { max-width: 420px; width: 100%; text-align: center; }
+.who-pick h2 { font-family: var(--f-display); font-size: 34px; font-weight: 800; letter-spacing: -.02em; margin: 0 0 6px; }
+.who-pick p { color: var(--muted); margin: 0 0 22px; }
+.who-pick .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.who-pick .choices button { border: none; border-radius: 22px; padding: 26px 12px; color: #fff; font-family: var(--f-display); font-size: 22px; font-weight: 700; display: grid; gap: 10px; justify-items: center; }
+.who-pick .choices .big-av { width: 56px; height: 56px; border-radius: 50%; background: rgba(255,255,255,.22); display: grid; place-items: center; font-size: 24px; }
+
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(90px + env(safe-area-inset-bottom, 0px)); background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-weight: 600; font-size: 14px; z-index: 30; max-width: calc(100% - 32px); box-shadow: var(--shadow); }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <div class="duo"><span class="av-s">A</span><span class="av-o">B</span></div>
+      <h1>Cuentas compartidas</h1>
+    </div>
+    <button class="yo-btn" id="yoBtn" type="button" aria-label="Cambiar quién soy"></button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="monthbar">
+    <h2 id="mesTitle"><small>Gastos de</small>…</h2>
+    <div class="mnav">
+      <button class="icon-btn" id="prevMes" type="button" aria-label="Mes anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <select id="mesSel" aria-label="Elegir mes"></select>
+      <button class="icon-btn" id="nextMes" type="button" aria-label="Mes siguiente"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg></button>
+    </div>
+  </div>
+  <p class="status" id="status">Conectando con sus cuentas…</p>
+
+  <div class="layout">
+    <aside class="side">
+      <div id="debtCard"></div>
+      <section class="card" id="whoCard"></section>
+      <section class="card" id="donutCard"></section>
+    </aside>
+    <main class="main">
+      <div class="list-head">
+        <p class="label" style="margin:0">Movimientos del mes</p>
+        <div id="filterSlot"></div>
+      </div>
+      <div id="list"></div>
+    </main>
+  </div>
+</div>
+
+<button class="fab" id="fab" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Agregar gasto</button>
+
+<!-- Gasto -->
+<dialog id="dGasto">
+  <form class="sheet" id="fGasto" method="dialog">
+    <div class="sheet-h"><h3 id="gTitle">Nuevo gasto</h3><button class="icon-btn" type="button" data-close aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="sheet-b">
+      <label class="field"><span>Monto (COP)</span><input class="input big num" id="gMonto" inputmode="numeric" autocomplete="off" placeholder="$0" required></label>
+      <label class="field"><span>¿En qué fue?</span><input class="input" id="gDesc" maxlength="80" placeholder="Ej: Cena en Andrés DC" required></label>
+      <div class="two">
+        <label class="field"><span>Fecha</span><input class="input" type="date" id="gFecha" required></label>
+        <div class="field"><span>Pagó</span><div class="seg" id="gPagoSeg"></div></div>
+      </div>
+      <div class="field"><span>Categoría</span><div class="cats" id="gCats"></div></div>
+      <div class="field"><span>¿Cómo se divide?</span><div class="opts" id="gOpts"></div></div>
+      <label class="field"><span>Nota (opcional)</span><input class="input" id="gNota" maxlength="140" placeholder="Algo que quieran recordar"></label>
+      <div id="gDelSlot"></div>
+    </div>
+    <div class="sheet-f"><button class="btn btn-ghost" type="button" data-close>Cancelar</button><button class="btn btn-ink" type="submit" id="gSave">Guardar gasto</button></div>
+  </form>
+</dialog>
+
+<!-- Pago -->
+<dialog id="dPago">
+  <form class="sheet" id="fPago" method="dialog">
+    <div class="sheet-h"><h3 id="pTitle">Registrar pago</h3><button class="icon-btn" type="button" data-close aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="sheet-b">
+      <div class="field"><span>¿Quién le paga a quién?</span><div class="seg" id="pDeSeg"></div></div>
+      <label class="field"><span>Monto (COP)</span><input class="input big num" id="pMonto" inputmode="numeric" autocomplete="off" placeholder="$0" required></label>
+      <p class="status" id="pHint" style="margin-top:-6px"></p>
+      <div class="two">
+        <label class="field"><span>Fecha</span><input class="input" type="date" id="pFecha" required></label>
+        <label class="field"><span>Nota (opcional)</span><input class="input" id="pNota" maxlength="80" placeholder="Nequi, efectivo…"></label>
+      </div>
+      <div id="pDelSlot"></div>
+    </div>
+    <div class="sheet-f"><button class="btn btn-ghost" type="button" data-close>Cancelar</button><button class="btn btn-ink" type="submit" id="pSave">Guardar pago</button></div>
+  </form>
+</dialog>
+
+<!-- Desglose -->
+<dialog id="dDesglose">
+  <div class="sheet">
+    <div class="sheet-h"><h3>Desglose de la deuda</h3><button class="icon-btn" type="button" data-close aria-label="Cerrar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+    <div class="sheet-b" id="desgloseBody"></div>
+    <div class="sheet-f"><button class="btn btn-ink" type="button" id="dPagar">Registrar un pago</button></div>
+  </div>
+</dialog>
+
+<div class="who-pick" id="whoPick" hidden>
+  <div class="in">
+    <h2>¿Quién eres?</h2>
+    <p>Así sabemos quién pagó por defecto cuando agregues un gasto. Lo puedes cambiar arriba cuando quieras.</p>
+    <div class="choices">
+      <button type="button" data-yo="personaa" style="background:var(--personaa)"><span class="big-av">A</span>Persona A</button>
+      <button type="button" data-yo="personab" style="background:var(--personab)"><span class="big-av">B</span>Persona B</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+(() => {
+  const $ = (s, r = document) => r.querySelector(s);
+  const P = { personab: { name: 'Persona B', ini: 'B', k: 'o' }, personaa: { name: 'Persona A', ini: 'A', k: 's' } };
+  const otro = p => (p === 'personab' ? 'personaa' : 'personab');
+  const CATS = [
+    { id: 'comida', label: 'Comida' }, { id: 'salidas', label: 'Salidas y planes' }, { id: 'cine', label: 'Cine' },
+    { id: 'suscripciones', label: 'Suscripciones' }, { id: 'viajes', label: 'Viajes' }, { id: 'mercado', label: 'Mercado' },
+    { id: 'transporte', label: 'Transporte' }, { id: 'regalos', label: 'Regalos' }, { id: 'otros', label: 'Otros' },
+  ];
+  const catOf = id => CATS.find(c => c.id === id) || CATS[CATS.length - 1];
+  const catColor = id => `var(--c-${catOf(id).id})`;
+  const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  const DIAS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+  const fmt = n => '$' + Math.round(Math.abs(n)).toLocaleString('es-CO');
+  const parseMonto = s => Number(String(s).replace(/[^\d]/g, '')) || 0;
+  const pad = n => String(n).padStart(2, '0');
+  const today = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; };
+  const mesLabel = m => { const [y, mm] = m.split('-').map(Number); return `${MESES[mm - 1]} ${y}`; };
+  const shiftMes = (m, k) => { let [y, mm] = m.split('-').map(Number); mm += k; while (mm < 1) { mm += 12; y--; } while (mm > 12) { mm -= 12; y++; } return `${y}-${pad(mm)}`; };
+  const fechaLabel = f => { const [y, m, d] = f.split('-').map(Number); const dt = new Date(y, m - 1, d); return `${DIAS[dt.getDay()]} ${d} de ${MESES[m - 1]}`; };
+  const fechaCorta = f => { const [y, m, d] = f.split('-').map(Number); return `${d} ${MESES[m - 1].slice(0, 3)} ${String(y).slice(2)}`; };
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } };
+  const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+
+  const state = { gastos: [], pagos: [], mes: today().slice(0, 7), yo: lsGet('cuentas-yo', null), filtroCat: null, mode: 'loading', stale: false, readonly: false };
+  let db = null;
+
+  /* ---------- Store ---------- */
+  function loadLocal() { const d = lsGet('cuentas-local', { gastos: [], pagos: [] }); state.gastos = d.gastos || []; state.pagos = d.pagos || []; }
+  function saveLocal() { lsSet('cuentas-local', { gastos: state.gastos, pagos: state.pagos }); }
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+  async function put(col, id, data) {
+    if (db) {
+      if (id) await db.doc(`${col}/${id}`).set(data);
+      else await db.collection(col).add(data);
+    } else {
+      const arr = state[col];
+      if (id) { const i = arr.findIndex(x => x.id === id); if (i >= 0) arr[i] = { id, ...data }; }
+      else arr.push({ id: uid(), ...data });
+      saveLocal(); render();
+    }
+  }
+  async function del(col, id) {
+    if (db) await db.doc(`${col}/${id}`).delete();
+    else { state[col] = state[col].filter(x => x.id !== id); saveLocal(); render(); }
+  }
+  function writeError(e) {
+    if (e && e.code === 'invalid_argument') { state.readonly = true; toast('No tienes permiso para guardar aquí. Pide acceso de editor a quien creó la página.'); render(); }
+    else if (e && e.code === 'quota_exceeded') toast('Se llenó el espacio de la base de datos. Borren movimientos viejos.');
+    else toast('No se pudo guardar. Revisa tu conexión e inténtalo otra vez.');
+  }
+
+  async function boot() {
+    render();
+    try { db = window.claude && window.claude.use ? await window.claude.use('db') : null; } catch { db = null; }
+    if (!db) { state.mode = 'local'; loadLocal(); render(); return; }
+    state.mode = 'db';
+    const ok = { gastos: false, pagos: false };
+    const timer = setTimeout(() => { if (!(ok.gastos && ok.pagos)) { state.stale = true; render(); } }, 10000);
+    for (const col of ['gastos', 'pagos']) {
+      db.collection(col).onSnapshot(snap => {
+        state[col] = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        if (!snap.metadata.fromCache) { ok[col] = true; if (ok.gastos && ok.pagos) { clearTimeout(timer); state.stale = false; } }
+        render();
+      }, err => { clearTimeout(timer); state.stale = true; state.err = err && err.code; render(); });
+    }
+  }
+
+  /* ---------- Math ---------- */
+  // Efecto en el saldo: positivo = Persona A le debe a Persona B.
+  function efectoGasto(g) {
+    const m = Number(g.monto) || 0;
+    const debe = g.reparto === 'mitad' ? m / 2 : g.reparto === 'otro' ? m : 0;
+    return g.pagadoPor === 'personab' ? debe : -debe;
+  }
+  const efectoPago = p => (p.de === 'personaa' ? -1 : 1) * (Number(p.monto) || 0);
+  function saldo(filtroMes) {
+    let s = 0;
+    for (const g of state.gastos) if (!filtroMes || g.fecha.startsWith(filtroMes)) s += efectoGasto(g);
+    for (const p of state.pagos) if (!filtroMes || p.fecha.startsWith(filtroMes)) s += efectoPago(p);
+    return Math.round(s);
+  }
+  function parteDe(g, persona) {
+    const m = Number(g.monto) || 0;
+    if (g.reparto === 'mitad') return m / 2;
+    if (g.reparto === 'otro') return g.pagadoPor === persona ? 0 : m;
+    return g.pagadoPor === persona ? m : 0;
+  }
+  const gastosMes = () => state.gastos.filter(g => (g.fecha || '').startsWith(state.mes));
+  const pagosMes = () => state.pagos.filter(p => (p.fecha || '').startsWith(state.mes));
+
+  /* ---------- Render ---------- */
+  function render() {
+    // Identidad
+    $('#whoPick').hidden = !!state.yo;
+    const yo = state.yo || 'personab';
+    $('#yoBtn').innerHTML = `<span class="dot av-${P[yo].k}">${P[yo].ini}</span>Soy ${P[yo].name}`;
+
+    // Mes
+    $('#mesTitle').innerHTML = `<small>Gastos de</small>${esc(mesLabel(state.mes))}`;
+    const meses = new Set([today().slice(0, 7), state.mes]);
+    state.gastos.forEach(g => g.fecha && meses.add(g.fecha.slice(0, 7)));
+    state.pagos.forEach(p => p.fecha && meses.add(p.fecha.slice(0, 7)));
+    const sel = $('#mesSel');
+    sel.innerHTML = [...meses].sort().reverse().map(m => `<option value="${m}"${m === state.mes ? ' selected' : ''}>${esc(mesLabel(m))}</option>`).join('');
+
+    // Estado
+    const st = $('#status');
+    st.className = 'status';
+    if (state.mode === 'loading') st.textContent = 'Conectando con sus cuentas…';
+    else if (state.mode === 'local') { st.textContent = 'Modo local: lo que guardes queda solo en este navegador. Para compartirlo entre dos personas, conecta una base de datos compartida.'; st.classList.add('warn'); }
+    else if (state.stale) { st.textContent = 'No se pudo confirmar con el servidor. Puede que falten movimientos recientes.'; st.classList.add('warn'); }
+    else if (state.readonly) { st.textContent = 'Solo lectura: tu acceso no permite guardar cambios.'; st.classList.add('warn'); }
+    else st.textContent = 'Sincronizado. Lo que agregue cualquiera de los dos aparece aquí al instante.';
+
+    renderDebt(); renderWho(); renderDonut(); renderList();
+  }
+
+  function renderDebt() {
+    const s = saldo();
+    const card = $('#debtCard');
+    const mesS = saldo(state.mes);
+    if (Math.abs(s) < 1) {
+      card.innerHTML = `<button type="button" class="card debt" id="debtBtn"><p class="label">Saldo entre los dos</p>
+        <div class="debt-line"><span class="chip-av av-s">S</span><span class="chip-av av-o" style="margin-left:-12px">O</span>Están a paz y salvo</div>
+        <div class="debt-amt num">$0</div>
+        <div class="debt-sub"><span>Nadie le debe nada a nadie</span><b>Ver desglose →</b></div></button>`;
+    } else {
+      const deudor = s > 0 ? 'personaa' : 'personab', acreedor = otro(deudor);
+      card.innerHTML = `<button type="button" class="card debt ${s > 0 ? 'owes-o' : 'owes-s'}" id="debtBtn"><p class="label">Quién le debe a quién</p>
+        <div class="debt-line"><span class="chip-av av-${P[deudor].k}">${P[deudor].ini}</span>${P[deudor].name}<span class="arrow">le debe a</span><span class="chip-av av-${P[acreedor].k}">${P[acreedor].ini}</span>${P[acreedor].name}</div>
+        <div class="debt-amt num">${fmt(s)}</div>
+        <div class="debt-sub"><span>Saldo acumulado${Math.abs(mesS) >= 1 ? ` · este mes ${mesS > 0 ? 'Persona A' : 'Persona B'} +${fmt(mesS)}` : ''}</span><b>Ver desglose →</b></div></button>`;
+    }
+    $('#debtBtn').onclick = () => openDesglose('todo');
+  }
+
+  function renderWho() {
+    const gs = gastosMes();
+    const pagS = gs.filter(g => g.pagadoPor === 'personaa').reduce((a, g) => a + Number(g.monto), 0);
+    const pagO = gs.filter(g => g.pagadoPor === 'personab').reduce((a, g) => a + Number(g.monto), 0);
+    const tot = pagS + pagO;
+    const parS = gs.reduce((a, g) => a + parteDe(g, 'personaa'), 0);
+    const parO = gs.reduce((a, g) => a + parteDe(g, 'personab'), 0);
+    const wS = tot ? (pagS / tot) * 100 : 50;
+    $('#whoCard').innerHTML = `<p class="label">Quién ha gastado cuánto</p>
+      <div class="total-mes"><span>Total del mes</span><b class="num">${fmt(tot)}</b></div>
+      <div class="split-bar" role="img" aria-label="Persona A pagó ${fmt(pagS)}, Persona B pagó ${fmt(pagO)}"><i style="width:${wS}%;background:var(--personaa)"></i><i style="width:${100 - wS}%;background:var(--personab)"></i></div>
+      <div class="who">
+        <div class="s"><div class="n">Persona A pagó</div><div class="v num">${fmt(pagS)}</div><div class="h">Le corresponde ${fmt(parS)}</div></div>
+        <div class="o"><div class="n">Persona B pagó</div><div class="v num">${fmt(pagO)}</div><div class="h">Le corresponde ${fmt(parO)}</div></div>
+      </div>`;
+  }
+
+  function renderDonut() {
+    const gs = gastosMes();
+    const by = {};
+    gs.forEach(g => { const c = catOf(g.cat).id; by[c] = (by[c] || 0) + Number(g.monto); });
+    const tot = Object.values(by).reduce((a, b) => a + b, 0);
+    const items = Object.entries(by).sort((a, b) => b[1] - a[1]);
+    const el = $('#donutCard');
+    if (!tot) {
+      el.innerHTML = `<p class="label">En qué se va la plata</p><div class="donut-wrap"><div class="donut"><svg viewBox="0 0 42 42"><circle cx="21" cy="21" r="15.915" fill="none" stroke="var(--surface-2)" stroke-width="6"/></svg><div class="center"><div><b>$0</b><span>sin gastos</span></div></div></div><p style="color:var(--muted);font-size:13px;margin:0;flex:1 1 160px">Cuando agreguen gastos este mes, aquí verán qué parte va a comida, salidas, suscripciones, viajes y lo demás.</p></div>`;
+      return;
+    }
+    let acc = 0;
+    const segs = items.map(([c, v]) => {
+      const pct = (v / tot) * 100;
+      const gap = items.length > 1 ? 0.6 : 0;
+      const s = `<circle class="seg${state.filtroCat && state.filtroCat !== c ? ' dim' : ''}" data-cat="${c}" cx="21" cy="21" r="15.915" fill="none" stroke="${catColor(c)}" stroke-width="${state.filtroCat === c ? 7.5 : 6}" stroke-dasharray="${Math.max(pct - gap, 0.01)} ${100 - Math.max(pct - gap, 0.01)}" stroke-dashoffset="${-acc}"><title>${esc(catOf(c).label)}: ${fmt(v)}</title></circle>`;
+      acc += pct; return s;
+    }).join('');
+    const focus = state.filtroCat && by[state.filtroCat] != null ? state.filtroCat : null;
+    el.innerHTML = `<p class="label">En qué se va la plata</p>
+      <div class="donut-wrap">
+        <div class="donut"><svg viewBox="0 0 42 42"><circle cx="21" cy="21" r="15.915" fill="none" stroke="var(--surface-2)" stroke-width="6"/>${segs}</svg>
+          <div class="center"><div><b class="num">${fmt(focus ? by[focus] : tot)}</b><span>${focus ? esc(catOf(focus).label) : 'total del mes'}</span></div></div></div>
+        <ul class="legend">${items.map(([c, v]) => `<li><button type="button" data-cat="${c}" class="${state.filtroCat === c ? 'on' : ''}"><i style="background:${catColor(c)}"></i><span>${esc(catOf(c).label)}</span><span class="amt num">${fmt(v)}</span><span class="pct num">${Math.round((v / tot) * 100)}%</span></button></li>`).join('')}</ul>
+      </div>`;
+    el.querySelectorAll('[data-cat]').forEach(b => b.addEventListener('click', () => { state.filtroCat = state.filtroCat === b.dataset.cat ? null : b.dataset.cat; render(); }));
+  }
+
+  function rowGasto(g) {
+    const k = P[g.pagadoPor]?.k || 'o';
+    const e = efectoGasto(g);
+    const nota = g.reparto === 'mitad' ? `50/50 · ${P[otro(g.pagadoPor)].name} debe ${fmt(e)}` : g.reparto === 'otro' ? `Todo lo debe ${P[otro(g.pagadoPor)].name}` : `Solo de ${P[g.pagadoPor].name}`;
+    return `<button type="button" class="row ${k}" data-g="${esc(g.id)}">
+      <span class="chip-av av-${k}" style="width:36px;height:36px">${P[g.pagadoPor]?.ini || '?'}</span>
+      <span style="min-width:0"><div class="t">${esc(g.desc)}</div><div class="m"><span class="cat-tag"><i style="background:${catColor(g.cat)}"></i>${esc(catOf(g.cat).label)}</span><span>·</span><span>${esc(nota)}</span></div></span>
+      <span class="a"><b class="num">${fmt(g.monto)}</b><small>pagó ${P[g.pagadoPor]?.name || ''}</small></span></button>`;
+  }
+  function rowPago(p) {
+    return `<button type="button" class="row pay" data-p="${esc(p.id)}">
+      <span class="pay-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+      <span style="min-width:0"><div class="t">${P[p.de].name} le pagó a ${P[p.para].name}</div><div class="m">${p.nota ? esc(p.nota) : 'Abono a la deuda'}</div></span>
+      <span class="a"><b class="num" style="color:var(--good)">${fmt(p.monto)}</b><small>pago</small></span></button>`;
+  }
+
+  function renderList() {
+    let gs = gastosMes();
+    const ps = state.filtroCat ? [] : pagosMes();
+    if (state.filtroCat) gs = gs.filter(g => catOf(g.cat).id === state.filtroCat);
+    $('#filterSlot').innerHTML = state.filtroCat ? `<button class="filter-pill" type="button" id="clearF"><i style="width:9px;height:9px;border-radius:3px;background:${catColor(state.filtroCat)}"></i>${esc(catOf(state.filtroCat).label)} ✕</button>` : '';
+    if (state.filtroCat) $('#clearF').onclick = () => { state.filtroCat = null; render(); };
+    const list = $('#list');
+    const items = [...gs.map(g => ({ t: 'g', f: g.fecha, c: g.creadoEn || '', o: g })), ...ps.map(p => ({ t: 'p', f: p.fecha, c: p.creadoEn || '', o: p }))]
+      .sort((a, b) => (b.f + b.c).localeCompare(a.f + a.c));
+    if (!items.length) {
+      list.innerHTML = state.mode === 'loading' ? `<div class="empty"><p>Cargando movimientos…</p></div>` :
+        `<div class="empty"><h3>Nada en ${esc(MESES[Number(state.mes.slice(5)) - 1])} todavía</h3><p>Agreguen la primera salida, compra o suscripción del mes. Los gastos de Persona A salen en rosado y los de Persona B en azul.</p><button class="btn btn-ink" type="button" id="emptyAdd">Agregar el primer gasto</button></div>`;
+      const b = $('#emptyAdd'); if (b) b.onclick = () => openGasto();
+      return;
+    }
+    let html = '', day = null;
+    for (const it of items) {
+      if (it.f !== day) { if (day !== null) html += '</div>'; day = it.f; html += `<div class="day">${esc(fechaLabel(day))}</div><div class="rows">`; }
+      html += it.t === 'g' ? rowGasto(it.o) : rowPago(it.o);
+    }
+    html += '</div>';
+    list.innerHTML = html;
+    list.querySelectorAll('[data-g]').forEach(b => b.onclick = () => openGasto(state.gastos.find(g => g.id === b.dataset.g)));
+    list.querySelectorAll('[data-p]').forEach(b => b.onclick = () => openPago(state.pagos.find(p => p.id === b.dataset.p)));
+  }
+
+  /* ---------- Gasto form ---------- */
+  const fg = { id: null, pagadoPor: 'personab', cat: 'comida', reparto: 'mitad', orig: null };
+  function moneyInput(el) {
+    el.addEventListener('input', () => { const n = parseMonto(el.value); el.value = n ? '$' + n.toLocaleString('es-CO') : ''; if (el.id === 'gMonto') drawOpts(); });
+  }
+  moneyInput($('#gMonto')); moneyInput($('#pMonto'));
+
+  function drawPagoSeg() {
+    $('#gPagoSeg').innerHTML = ['personaa', 'personab'].map(p => `<button type="button" data-p="${p}" class="${P[p].k}${fg.pagadoPor === p ? ' on' : ''}"><span class="chip-av av-${P[p].k}" style="width:22px;height:22px;font-size:11px">${P[p].ini}</span>${P[p].name}</button>`).join('');
+    $('#gPagoSeg').querySelectorAll('button').forEach(b => b.onclick = () => { fg.pagadoPor = b.dataset.p; drawPagoSeg(); drawOpts(); });
+  }
+  function drawCats() {
+    $('#gCats').innerHTML = CATS.map(c => `<button type="button" data-c="${c.id}" class="${fg.cat === c.id ? 'on' : ''}"><i style="background:${catColor(c.id)}"></i>${c.label}</button>`).join('');
+    $('#gCats').querySelectorAll('button').forEach(b => b.onclick = () => { fg.cat = b.dataset.c; drawCats(); });
+  }
+  function drawOpts() {
+    const m = parseMonto($('#gMonto').value), pa = P[fg.pagadoPor].name, ot = P[otro(fg.pagadoPor)].name;
+    const opts = [
+      ['mitad', 'Mitad y mitad (50/50)', m ? `${ot} le debe ${fmt(m / 2)} a ${pa}` : `${ot} le debe la mitad a ${pa}`],
+      ['otro', `Todo lo paga ${ot}`, m ? `${ot} le debe ${fmt(m)} a ${pa}` : `${pa} solo lo adelantó con su tarjeta`],
+      ['personal', `Era solo de ${pa}`, 'No genera deuda, solo cuenta en las estadísticas'],
+    ];
+    $('#gOpts').innerHTML = opts.map(([id, t, s]) => `<button type="button" data-r="${id}" class="${fg.reparto === id ? 'on' : ''}"><b>${esc(t)}</b><span>${esc(s)}</span></button>`).join('');
+    $('#gOpts').querySelectorAll('button').forEach(b => b.onclick = () => { fg.reparto = b.dataset.r; drawOpts(); });
+  }
+  function openGasto(g) {
+    fg.id = g ? g.id : null; fg.orig = g || null;
+    fg.pagadoPor = g ? g.pagadoPor : (state.yo || 'personab');
+    fg.cat = g ? catOf(g.cat).id : 'comida';
+    fg.reparto = g ? g.reparto : 'mitad';
+    $('#gTitle').textContent = g ? 'Editar gasto' : 'Nuevo gasto';
+    $('#gMonto').value = g ? '$' + Number(g.monto).toLocaleString('es-CO') : '';
+    $('#gDesc').value = g ? g.desc : '';
+    let f = g ? g.fecha : today();
+    if (!g && !today().startsWith(state.mes)) f = state.mes + '-01';
+    $('#gFecha').value = f;
+    $('#gNota').value = g ? (g.nota || '') : '';
+    drawPagoSeg(); drawCats(); drawOpts();
+    drawDel('#gDelSlot', g ? async () => { try { await del('gastos', g.id); $('#dGasto').close(); toast('Gasto borrado'); } catch (e) { writeError(e); } } : null, 'gasto');
+    $('#dGasto').showModal();
+    if (!g) setTimeout(() => $('#gMonto').focus(), 50);
+  }
+  function drawDel(slot, fn, what) {
+    const el = $(slot);
+    if (!fn) { el.innerHTML = ''; return; }
+    el.innerHTML = `<button type="button" class="btn btn-danger" data-del>Borrar este ${what}</button>`;
+    el.querySelector('[data-del]').onclick = () => {
+      el.innerHTML = `<div class="confirm-del"><span>¿Seguro? No se puede deshacer.</span><button type="button" class="btn btn-danger" data-yes>Sí, borrar</button><button type="button" class="btn btn-ghost" data-no>No</button></div>`;
+      el.querySelector('[data-yes]').onclick = fn;
+      el.querySelector('[data-no]').onclick = () => drawDel(slot, fn, what);
+    };
+  }
+  $('#fGasto').addEventListener('submit', async e => {
+    e.preventDefault();
+    const monto = parseMonto($('#gMonto').value), desc = $('#gDesc').value.trim(), fecha = $('#gFecha').value;
+    if (!monto) { toast('Escribe el monto del gasto'); $('#gMonto').focus(); return; }
+    if (!desc) { toast('Escribe en qué fue el gasto'); $('#gDesc').focus(); return; }
+    if (!fecha) { toast('Elige la fecha'); return; }
+    const data = { desc, monto, fecha, cat: fg.cat, pagadoPor: fg.pagadoPor, reparto: fg.reparto, nota: $('#gNota').value.trim(),
+      creadoPor: fg.orig ? (fg.orig.creadoPor || state.yo) : state.yo, creadoEn: fg.orig ? (fg.orig.creadoEn || new Date().toISOString()) : new Date().toISOString() };
+    if (fg.orig) { data.editadoPor = state.yo; data.editadoEn = new Date().toISOString(); }
+    const btn = $('#gSave'); btn.disabled = true;
+    try { await put('gastos', fg.id, data); $('#dGasto').close(); toast(fg.id ? 'Gasto actualizado' : 'Gasto guardado'); if (!fecha.startsWith(state.mes)) { state.mes = fecha.slice(0, 7); render(); } }
+    catch (err) { writeError(err); }
+    finally { btn.disabled = false; }
+  });
+
+  /* ---------- Pago form ---------- */
+  const fp = { id: null, de: 'personaa', orig: null };
+  function drawPagoDe() {
+    $('#pDeSeg').innerHTML = ['personaa', 'personab'].map(p => `<button type="button" data-p="${p}" class="${P[p].k}${fp.de === p ? ' on' : ''}">${P[p].name} → ${P[otro(p)].name}</button>`).join('');
+    $('#pDeSeg').querySelectorAll('button').forEach(b => b.onclick = () => { fp.de = b.dataset.p; drawPagoDe(); hintPago(); });
+  }
+  function hintPago() {
+    const s = saldo() - (fp.orig ? efectoPago(fp.orig) : 0);
+    const deudor = s > 0 ? 'personaa' : s < 0 ? 'personab' : null;
+    $('#pHint').textContent = !deudor ? 'Ahora mismo están a paz y salvo.' : `Deuda actual: ${P[deudor].name} le debe ${fmt(s)} a ${P[otro(deudor)].name}.`;
+  }
+  function openPago(p) {
+    const s = saldo();
+    fp.id = p ? p.id : null; fp.orig = p || null;
+    fp.de = p ? p.de : (s < 0 ? 'personab' : 'personaa');
+    $('#pTitle').textContent = p ? 'Editar pago' : 'Registrar pago';
+    $('#pMonto').value = p ? '$' + Number(p.monto).toLocaleString('es-CO') : (Math.abs(s) >= 1 ? '$' + Math.abs(s).toLocaleString('es-CO') : '');
+    $('#pFecha').value = p ? p.fecha : today();
+    $('#pNota').value = p ? (p.nota || '') : '';
+    drawPagoDe(); hintPago();
+    drawDel('#pDelSlot', p ? async () => { try { await del('pagos', p.id); $('#dPago').close(); toast('Pago borrado'); } catch (e) { writeError(e); } } : null, 'pago');
+    $('#dPago').showModal();
+  }
+  $('#fPago').addEventListener('submit', async e => {
+    e.preventDefault();
+    const monto = parseMonto($('#pMonto').value), fecha = $('#pFecha').value;
+    if (!monto) { toast('Escribe cuánto se pagó'); return; }
+    const data = { de: fp.de, para: otro(fp.de), monto, fecha, nota: $('#pNota').value.trim(),
+      creadoPor: fp.orig ? (fp.orig.creadoPor || state.yo) : state.yo, creadoEn: fp.orig ? (fp.orig.creadoEn || new Date().toISOString()) : new Date().toISOString() };
+    const btn = $('#pSave'); btn.disabled = true;
+    try { await put('pagos', fp.id, data); $('#dPago').close(); if ($('#dDesglose').open) openDesglose(desgloseScope); toast(fp.id ? 'Pago actualizado' : 'Pago registrado, la deuda se ajustó'); }
+    catch (err) { writeError(err); }
+    finally { btn.disabled = false; }
+  });
+
+  /* ---------- Desglose ---------- */
+  let desgloseScope = 'todo';
+  function openDesglose(scope) {
+    desgloseScope = scope;
+    const mes = scope === 'mes' ? state.mes : null;
+    const gs = state.gastos.filter(g => !mes || g.fecha.startsWith(mes));
+    const ps = state.pagos.filter(p => !mes || p.fecha.startsWith(mes));
+    const aFavorO = gs.filter(g => g.pagadoPor === 'personab').reduce((a, g) => a + efectoGasto(g), 0);
+    const aFavorS = -gs.filter(g => g.pagadoPor === 'personaa').reduce((a, g) => a + efectoGasto(g), 0);
+    const pagSO = ps.filter(p => p.de === 'personaa').reduce((a, p) => a + Number(p.monto), 0);
+    const pagOS = ps.filter(p => p.de === 'personab').reduce((a, p) => a + Number(p.monto), 0);
+    const s = saldo(mes);
+    const resumen = Math.abs(s) < 1 ? 'Quedan a paz y salvo' : `${s > 0 ? 'Persona A le debe a Persona B' : 'Persona B le debe a Persona A'}`;
+    const items = [...gs.map(g => ({ t: 'g', o: g, f: g.fecha, c: g.creadoEn || '' })), ...ps.map(p => ({ t: 'p', o: p, f: p.fecha, c: p.creadoEn || '' }))].sort((a, b) => (b.f + b.c).localeCompare(a.f + a.c));
+    const rows = items.map(it => {
+      if (it.t === 'g') {
+        const g = it.o, e = efectoGasto(g);
+        const eTxt = Math.abs(e) < 1 ? '<span class="e zero">no genera deuda</span>' : e > 0 ? `<span class="e to-o">Persona A debe ${fmt(e)}</span>` : `<span class="e to-s">Persona B debe ${fmt(e)}</span>`;
+        return `<div class="bd-row"><div style="min-width:0"><div class="t">${esc(g.desc)}</div><div class="m">${fechaCorta(g.fecha)} · ${esc(catOf(g.cat).label)} · pagó ${P[g.pagadoPor].name} ${fmt(g.monto)} · ${g.reparto === 'mitad' ? '50/50' : g.reparto === 'otro' ? 'todo del otro' : 'personal'}</div></div>${eTxt}</div>`;
+      }
+      const p = it.o;
+      return `<div class="bd-row"><div style="min-width:0"><div class="t">Pago: ${P[p.de].name} → ${P[p.para].name}</div><div class="m">${fechaCorta(p.fecha)}${p.nota ? ' · ' + esc(p.nota) : ''}</div></div><span class="e" style="color:var(--good)">−${fmt(p.monto)}</span></div>`;
+    }).join('');
+    $('#desgloseBody').innerHTML = `
+      <div class="tabs" role="tablist"><button type="button" data-s="todo" class="${scope === 'todo' ? 'on' : ''}">Todo el tiempo</button><button type="button" data-s="mes" class="${scope === 'mes' ? 'on' : ''}">Solo ${esc(MESES[Number(state.mes.slice(5)) - 1])}</button></div>
+      <div class="sum-box num">
+        <div><span>Lo que Persona A le debe por gastos que pagó Persona B</span><b style="color:var(--personab-ink)">${fmt(aFavorO)}</b></div>
+        <div><span>Lo que Persona B le debe por gastos que pagó Persona A</span><b style="color:var(--personaa-ink)">${fmt(aFavorS)}</b></div>
+        ${pagSO ? `<div><span>Pagos de Persona A a Persona B</span><b style="color:var(--good)">−${fmt(pagSO)}</b></div>` : ''}
+        ${pagOS ? `<div><span>Pagos de Persona B a Persona A</span><b style="color:var(--good)">−${fmt(pagOS)}</b></div>` : ''}
+        <div class="tot"><span>${resumen}</span><b>${fmt(s)}</b></div>
+      </div>
+      ${scope === 'mes' ? '<p class="status" style="margin-top:-6px">Lo que salió de este mes. La deuda real es la de “Todo el tiempo”.</p>' : ''}
+      <p class="label">Movimiento por movimiento</p>
+      ${rows || '<p class="status">No hay movimientos todavía.</p>'}`;
+    $('#desgloseBody').querySelectorAll('[data-s]').forEach(b => b.onclick = () => openDesglose(b.dataset.s));
+    if (!$('#dDesglose').open) $('#dDesglose').showModal();
+  }
+  $('#dPagar').onclick = () => openPago();
+
+  /* ---------- Misc ---------- */
+  document.querySelectorAll('dialog').forEach(d => {
+    d.addEventListener('click', e => { if (e.target === d) d.close(); });
+    d.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => d.close()));
+  });
+  let tt;
+  function toast(msg) { const t = $('#toast'); t.textContent = msg; t.hidden = false; clearTimeout(tt); tt = setTimeout(() => t.hidden = true, 2800); }
+  $('#fab').onclick = () => openGasto();
+  $('#prevMes').onclick = () => { state.mes = shiftMes(state.mes, -1); state.filtroCat = null; render(); };
+  $('#nextMes').onclick = () => { state.mes = shiftMes(state.mes, 1); state.filtroCat = null; render(); };
+  $('#mesSel').onchange = e => { state.mes = e.target.value; state.filtroCat = null; render(); };
+  $('#yoBtn').onclick = () => { state.yo = otro(state.yo || 'personab'); lsSet('cuentas-yo', state.yo); render(); toast(`Ahora estás como ${P[state.yo].name}`); };
+  document.querySelectorAll('[data-yo]').forEach(b => b.onclick = () => { state.yo = b.dataset.yo; lsSet('cuentas-yo', state.yo); render(); });
+
+  boot();
+})();
+</script>
